@@ -1,0 +1,86 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. The canvas renderer reads the same variables (src/render/theme.ts),
+ * so on-canvas vectors match Tailwind utilities like `text-velocity`.
+ */
+@theme {
+  --color-stage: #0f172a;
+  --color-stage-text: #cbd5e1;
+  --color-stage-grid: #1e293b;
+  --color-ground: #334155;
+  --color-structure: #475569;
+  --color-body: #f8fafc;
+  --color-velocity: #22c55e;
+  --color-acceleration: #f97316;
+  --color-ghost: #93c5fd;
+  --color-strobe: #e2e8f0;
+  --color-marker: #facc15;
+  --color-reference: #a78bfa;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    font-family:
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
+  }
+  button {
+    cursor: pointer;
+  }
+}
+
+/* Wide, thumb-friendly range slider. touch-action:none prevents page scroll while dragging. */
+@layer components {
+  .slider {
+    @apply block w-full cursor-pointer appearance-none bg-transparent;
+    height: 44px;
+    touch-action: none;
+  }
+  .slider:disabled {
+    cursor: not-allowed;
+  }
+  .slider::-webkit-slider-runnable-track {
+    height: 10px;
+    border-radius: 9999px;
+    background: var(--color-slate-700);
+  }
+  .slider::-moz-range-track {
+    height: 10px;
+    border-radius: 9999px;
+    background: var(--color-slate-700);
+  }
+  .slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    margin-top: -9px;
+    border-radius: 9999px;
+    background: var(--color-sky-400);
+    border: 3px solid var(--color-slate-950);
+    box-shadow: 0 0 0 2px var(--color-sky-400);
+  }
+  .slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 9999px;
+    background: var(--color-sky-400);
+    border: 3px solid var(--color-slate-950);
+  }
+  .slider:focus-visible {
+    outline: 2px solid var(--color-sky-300);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+}
