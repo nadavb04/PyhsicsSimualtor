@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { templateRegistry } from '@/templates/registry';
 import { TOPICS, initialParams } from '.';
 import { PRAISE_LINES, pickPraise } from './praise';
+import { tr, type LocalizedText } from './locale';
 import type { PhysicsTopic } from './schema';
 import { validateContent } from './validate';
 
@@ -15,29 +16,30 @@ describe('validateContent', () => {
   const contract = {
     'vertical-throw': { requiredParams: ['a'], optionalParams: [], supportedCues: ['cue'] },
   };
+  const L = (s: string): LocalizedText => ({ en: s, he: s });
   const make = (patch: (t: PhysicsTopic) => void): PhysicsTopic => {
     const topic: PhysicsTopic = {
       id: 't',
-      title: 'T',
-      description: '',
+      title: L('T'),
+      description: L(''),
       questions: [
         {
           id: 'q',
-          title: 'Q',
-          scenarioDescription: '',
+          title: L('Q'),
+          scenarioDescription: L(''),
           simulationTemplate: 'vertical-throw',
           parameters: [
-            { id: 'a', label: 'A', unit: '', min: 0, max: 10, step: 2, defaultValue: 4 },
+            { id: 'a', label: L('A'), unit: '', min: 0, max: 10, step: 2, defaultValue: 4 },
           ],
           visualOverlays: {},
           subQuestions: [
             {
               id: 's',
-              prompt: '?',
+              prompt: L('?'),
               visualFocusCue: 'cue',
               options: [
-                { id: 'x', text: 'x', isCorrect: true, feedback: 'yes' },
-                { id: 'y', text: 'y', isCorrect: false, feedback: 'no' },
+                { id: 'x', text: L('x'), isCorrect: true, feedback: L('yes') },
+                { id: 'y', text: L('y'), isCorrect: false, feedback: L('no') },
               ],
             },
           ],
@@ -82,6 +84,21 @@ describe('validateContent', () => {
       (t: PhysicsTopic) => (q(t).parameters[0]!.id = 'z'),
       /missing required/,
     ],
+    [
+      'missing Hebrew prompt',
+      (t: PhysicsTopic) => (sub(t).prompt = { en: 'Why?', he: '' }),
+      /prompt: missing text for locale\(s\) he/,
+    ],
+    [
+      'missing English feedback',
+      (t: PhysicsTopic) => (sub(t).options[0]!.feedback = { en: ' ', he: 'כן' }),
+      /feedback: missing text for locale\(s\) en/,
+    ],
+    [
+      'partially translated optional description',
+      (t: PhysicsTopic) => (t.description = { en: 'About', he: '' }),
+      /description: missing text/,
+    ],
   ])('rejects %s', (_name, patch, message) => {
     const errors = validateContent([make(patch)], contract);
     expect(errors.some((e) => message.test(e))).toBe(true);
@@ -102,5 +119,10 @@ describe('content helpers', () => {
   it('pickPraise is deterministic with an injected random source', () => {
     expect(pickPraise(() => 0)).toBe(PRAISE_LINES[0]);
     expect(pickPraise(() => 0.9999)).toBe(PRAISE_LINES.at(-1));
+  });
+
+  it('tr resolves a locale and falls back to English when blank', () => {
+    expect(tr({ en: 'Hi', he: 'שלום' }, 'he')).toBe('שלום');
+    expect(tr({ en: 'Hi', he: '' }, 'he')).toBe('Hi');
   });
 });

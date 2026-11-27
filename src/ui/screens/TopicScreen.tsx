@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router';
 import { getTopic } from '@/content';
 import { questionScore, topicScore } from '@/game/scoring';
 import { useProgressStore } from '@/state/progressStore';
+import { useI18n } from '../i18n/useI18n';
 import { ScoreBar } from '../layout/ScoreBar';
 import { NotFound } from './NotFound';
 
@@ -9,17 +10,18 @@ export function TopicScreen() {
   const { topicId = '' } = useParams();
   const topic = getTopic(topicId);
   const results = useProgressStore((s) => s.results);
+  const { t, tr } = useI18n();
   if (!topic) return <NotFound />;
 
   return (
     <div className="mx-auto max-w-xl space-y-4 p-4">
       <Link to="/" className="inline-flex min-h-11 items-center text-sm text-sky-300">
-        ← All topics
+        {t.backToTopics}
       </Link>
       <div>
-        <h1 className="text-2xl font-bold">{topic.title}</h1>
-        <p className="mb-3 text-sm text-slate-400">{topic.description}</p>
-        <ScoreBar score={topicScore(topic, results)} label={`${topic.title} progress`} />
+        <h1 className="text-2xl font-bold">{tr(topic.title)}</h1>
+        <p className="mb-3 text-sm text-slate-400">{tr(topic.description)}</p>
+        <ScoreBar score={topicScore(topic, results)} label={t.topicProgressAria(tr(topic.title))} />
       </div>
 
       <ol className="space-y-2">
@@ -39,8 +41,8 @@ export function TopicScreen() {
                 >
                   {done ? '✓' : i + 1}
                 </span>
-                <span className="flex-1 text-sm font-medium">{q.title}</span>
-                <span className="text-xs tabular-nums text-slate-400">
+                <span className="flex-1 text-sm font-medium">{tr(q.title)}</span>
+                <span dir="ltr" className="text-xs tabular-nums text-slate-400">
                   {s.earned}/{s.max}
                 </span>
               </Link>

@@ -3,6 +3,14 @@
 The app keeps **curriculum data** (`src/content/`) separate from **simulation templates** (`src/templates/`).
 Most additions touch only one of the two.
 
+## Languages
+
+The app is bilingual. Hebrew is the default and English is available from the header toggle. Every learner-facing string in content is a `LocalizedText` object, `{ en: '…', he: '…' }`. This covers titles, descriptions, scenario, prompts, option `text`, `feedback`, slider `label`, `qualitativeLabels` and `valueLabels`. The validator fails if a locale is missing or blank. Descriptions and scenarios may be empty in both languages, but not in just one.
+
+Anything drawn on the simulation canvas stays **English-only**: template render labels, `ghost.label`, the vector legend and units. Don't localize these. When Hebrew feedback refers to on-screen colours or labels (the purple line, the green arrow, "↑/↓" speeds), make sure it describes what the English figure actually shows.
+
+UI chrome strings (buttons, headings, hints) live in [src/ui/i18n/strings.ts](../src/ui/i18n/strings.ts), not in content.
+
 ## Add a question to an existing template
 
 1. Open the topic file, e.g. [src/content/topics/kinematics-1d.ts](../src/content/topics/kinematics-1d.ts).

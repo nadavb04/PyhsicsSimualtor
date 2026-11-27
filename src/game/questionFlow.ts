@@ -8,6 +8,7 @@
  * - observe: the simulation plays with the locked prediction.
  * - debrief: praise + takeaway, or a misconception hint and a retry option.
  */
+import type { LocalizedText } from '@/content/locale';
 import { pointsForAttempt } from './scoring';
 
 export type FlowPhase = 'explore' | 'observe' | 'debrief';
@@ -18,7 +19,7 @@ export interface FlowOutcome {
   points: number;
   attempt: number;
   /** Praise line chosen at reveal time (kept here so re-renders don't reshuffle it). */
-  praise?: string;
+  praise?: LocalizedText;
 }
 
 export interface FlowState {
@@ -34,7 +35,7 @@ export type FlowAction =
   | { type: 'select'; optionId: string }
   | { type: 'param-changed' }
   | { type: 'submit' }
-  | { type: 'reveal'; correctOptionId: string; praise?: string }
+  | { type: 'reveal'; correctOptionId: string; praise?: LocalizedText }
   | { type: 'retry' }
   | { type: 'reset' };
 

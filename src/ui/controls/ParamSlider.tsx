@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import type { SliderParam } from '@/content/schema';
+import { useI18n } from '../i18n/useI18n';
 
 interface Props {
   param: SliderParam;
@@ -10,18 +11,19 @@ interface Props {
 
 export function ParamSlider({ param, value, disabled, onChange }: Props) {
   const id = useId();
+  const { t, tr } = useI18n();
   return (
     <div className={disabled ? 'opacity-50' : ''}>
       <div className="flex items-baseline justify-between text-sm">
         <label htmlFor={id} className="font-medium text-slate-200">
-          {param.label}
+          {tr(param.label)}
           {disabled && (
-            <span className="ml-1 text-xs text-slate-400" aria-label="locked">
+            <span className="ms-1 text-xs text-slate-400" aria-label={t.locked}>
               🔒
             </span>
           )}
         </label>
-        <output htmlFor={id} className="tabular-nums text-slate-300">
+        <output htmlFor={id} dir="ltr" className="tabular-nums text-slate-300">
           {value} {param.unit}
         </output>
       </div>
@@ -38,8 +40,8 @@ export function ParamSlider({ param, value, disabled, onChange }: Props) {
       />
       {param.qualitativeLabels && (
         <div className="flex justify-between text-xs text-slate-500">
-          <span>{param.qualitativeLabels[0]}</span>
-          <span>{param.qualitativeLabels[1]}</span>
+          <span>{tr(param.qualitativeLabels[0])}</span>
+          <span>{tr(param.qualitativeLabels[1])}</span>
         </div>
       )}
     </div>

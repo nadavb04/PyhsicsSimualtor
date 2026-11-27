@@ -14,9 +14,8 @@ import { DebriefPanel } from '../question/DebriefPanel';
 import { PredictionCard } from '../question/PredictionCard';
 import { SimulationStage } from '../sim/SimulationStage';
 import { useSimulation } from '../sim/useSimulation';
+import { useI18n } from '../i18n/useI18n';
 import { NotFound } from './NotFound';
-
-const subLetter = (i: number) => String.fromCharCode(97 + i);
 
 export function QuestionScreen() {
   const { topicId = '', questionId = '' } = useParams();
@@ -24,6 +23,7 @@ export function QuestionScreen() {
   const question = getQuestion(topicId, questionId);
   const template = question ? getTemplate(question.simulationTemplate) : undefined;
   const results = useProgressStore((s) => s.results);
+  const { t, tr } = useI18n();
 
   // Open on the first unsolved part.
   const [subIndex, setSubIndex] = useState(() => {
@@ -45,9 +45,9 @@ export function QuestionScreen() {
           to={`/topic/${topicId}`}
           className="inline-flex min-h-11 items-center text-sm text-sky-300"
         >
-          ← Topic
+          {t.backToTopic}
         </Link>
-        <nav className="flex gap-1.5" aria-label="Question parts">
+        <nav className="flex gap-1.5" aria-label={t.questionParts}>
           {question.subQuestions.map((s, i) => {
             const solved = results[subQuestionKey(topicId, question.id, s.id)]?.solved;
             return (
@@ -64,16 +64,16 @@ export function QuestionScreen() {
                       : 'bg-slate-800'
                 }`}
               >
-                {solved ? '✓' : `(${subLetter(i)})`}
+                {solved ? '✓' : `(${t.partLetter(i)})`}
               </button>
             );
           })}
         </nav>
       </div>
-      <h1 className="text-lg font-bold leading-tight">{question.title}</h1>
+      <h1 className="text-lg font-bold leading-tight">{tr(question.title)}</h1>
       <details className="text-sm text-slate-300">
-        <summary className="min-h-8 cursor-pointer text-slate-400">Scenario</summary>
-        <p className="mt-1 leading-relaxed">{question.scenarioDescription}</p>
+        <summary className="min-h-8 cursor-pointer text-slate-400">{t.scenario}</summary>
+        <p className="mt-1 leading-relaxed">{tr(question.scenarioDescription)}</p>
       </details>
     </div>
   );
@@ -86,7 +86,7 @@ export function QuestionScreen() {
       sub={sub}
       template={template}
       header={header}
-      nextLabel={isLast ? 'Back to topic' : `Next: part (${subLetter(subIndex + 1)}) →`}
+      nextLabel={isLast ? t.finishQuestion : t.nextPart(t.partLetter(subIndex + 1))}
       onNext={() => (isLast ? navigate(`/topic/${topicId}`) : setSubIndex(subIndex + 1))}
     />
   );
@@ -114,6 +114,7 @@ function SubQuestionRunner({
 }: RunnerProps) {
   const key = subQuestionKey(topicId, question.id, sub.id);
   const recordOutcome = useProgressStore((s) => s.recordOutcome);
+  const { t, tr } = useI18n();
   // Captured at mount so the debrief keeps showing earned points after this attempt is saved.
   const [practice] = useState(() => useProgressStore.getState().results[key]?.solved ?? false);
 
@@ -173,8 +174,13 @@ function SubQuestionRunner({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="relative h-[46dvh] min-h-56 shrink-0 border-b border-slate-800">
-        <SimulationStage canvasRef={sim.canvasRef} label={`Simulation: ${question.title}`} />
+      {/* Figure stays LTR/English: canvas text inherits direction from its element. */}
+      <div
+        dir="ltr"
+        data-testid="sim-stage"
+        className="relative h-[46dvh] min-h-56 shrink-0 border-b border-slate-800"
+      >
+        <SimulationStage canvasRef={sim.canvasRef} label={t.simulationAria(tr(question.title))} />
         <VectorLegend question={question} />
       </div>
 
@@ -185,7 +191,7 @@ function SubQuestionRunner({
           <PlaybackControls
             status={sim.status}
             disabled={!freePlay && !observing}
-            disabledHint="Lock in a prediction to run the experiment."
+            disabledHint={t.lockedHint}
             onPlay={sim.controls.play}
             onPause={sim.controls.pause}
             onReset={sim.controls.reset}
@@ -213,11 +219,11 @@ function SubQuestionRunner({
           )}
 
           <section
-            aria-label="Experiment settings"
+            aria-label={t.experimentSettings}
             className="space-y-4 rounded-2xl bg-slate-900 p-4"
           >
             <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Experiment settings
+              {t.experimentSettings}
             </h2>
             {question.parameters.map((p) => {
               const Control = p.kind === 'toggle' ? ParamToggle : ParamSlider;

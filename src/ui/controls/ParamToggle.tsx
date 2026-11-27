@@ -1,4 +1,5 @@
 import type { SliderParam } from '@/content/schema';
+import { useI18n } from '../i18n/useI18n';
 
 interface Props {
   param: SliderParam;
@@ -8,7 +9,10 @@ interface Props {
 }
 
 export function ParamToggle({ param, value, disabled, onChange }: Props) {
-  const [offLabel, onLabel] = param.valueLabels ?? ['Off', 'On'];
+  const { t, tr } = useI18n();
+  const offLabel = param.valueLabels ? tr(param.valueLabels[0]) : t.toggleOff;
+  const onLabel = param.valueLabels ? tr(param.valueLabels[1]) : t.toggleOn;
+  const label = tr(param.label);
   const option = (v: 0 | 1, text: string) => (
     <button
       type="button"
@@ -25,18 +29,14 @@ export function ParamToggle({ param, value, disabled, onChange }: Props) {
   return (
     <div className={`flex items-center justify-between gap-3 ${disabled ? 'opacity-50' : ''}`}>
       <span className="text-sm font-medium text-slate-200">
-        {param.label}
+        {label}
         {disabled && (
-          <span className="ml-1 text-xs text-slate-400" aria-label="locked">
+          <span className="ms-1 text-xs text-slate-400" aria-label={t.locked}>
             🔒
           </span>
         )}
       </span>
-      <div
-        className="flex w-40 gap-1 rounded-xl bg-slate-800 p-1"
-        role="group"
-        aria-label={param.label}
-      >
+      <div className="flex w-40 gap-1 rounded-xl bg-slate-800 p-1" role="group" aria-label={label}>
         {option(0, offLabel)}
         {option(1, onLabel)}
       </div>

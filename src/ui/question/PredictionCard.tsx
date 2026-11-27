@@ -1,4 +1,5 @@
 import type { SubQuestion } from '@/content/schema';
+import { useI18n } from '../i18n/useI18n';
 
 interface Props {
   sub: SubQuestion;
@@ -18,11 +19,12 @@ export function PredictionCard({
   onSubmit,
   onSkip,
 }: Props) {
+  const { t, tr } = useI18n();
   return (
     <section className="rounded-2xl bg-slate-800/70 p-4" aria-labelledby={`prompt-${sub.id}`}>
-      <p className="text-xs font-semibold uppercase tracking-wide text-sky-400">Predict</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-sky-400">{t.predict}</p>
       <h2 id={`prompt-${sub.id}`} className="mt-1 text-base font-semibold leading-snug">
-        {sub.prompt}
+        {tr(sub.prompt)}
       </h2>
 
       <div role="radiogroup" aria-labelledby={`prompt-${sub.id}`} className="mt-3 space-y-2">
@@ -36,7 +38,7 @@ export function PredictionCard({
               aria-checked={selected}
               disabled={observing}
               onClick={() => onSelect(o.id)}
-              className={`flex min-h-11 w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition ${
+              className={`flex min-h-11 w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-start text-sm transition ${
                 selected
                   ? 'border-sky-400 bg-sky-500/15 text-white'
                   : 'border-slate-700 bg-slate-900/60 text-slate-200 active:bg-slate-800'
@@ -46,7 +48,7 @@ export function PredictionCard({
                 aria-hidden
                 className={`size-4 shrink-0 rounded-full border-2 ${selected ? 'border-sky-400 bg-sky-400' : 'border-slate-500'}`}
               />
-              {o.text}
+              {tr(o.text)}
             </button>
           );
         })}
@@ -54,13 +56,13 @@ export function PredictionCard({
 
       {observing ? (
         <div className="mt-3 flex items-center justify-between gap-2">
-          <p className="text-sm text-slate-300">Watch the simulation…</p>
+          <p className="text-sm text-slate-300">{t.watchSimulation}</p>
           <button
             type="button"
             onClick={onSkip}
             className="min-h-11 rounded-xl px-3 text-sm font-semibold text-sky-300"
           >
-            Skip to result
+            {t.skipToResult}
           </button>
         </div>
       ) : (
@@ -70,7 +72,7 @@ export function PredictionCard({
           disabled={!selectedOptionId}
           className="mt-3 min-h-12 w-full rounded-xl bg-emerald-600 text-base font-bold text-white transition active:scale-[0.98] disabled:opacity-40"
         >
-          Lock in & test prediction
+          {t.lockIn}
         </button>
       )}
     </section>

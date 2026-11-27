@@ -28,9 +28,9 @@ src/
   engine/     Pure TS physics core: integrators, fixed-timestep runner, recorder, headless simulate()
   render/     Canvas helpers: camera (world↔screen, HiDPI), arrows/dots/rulers/graphs, theme
   templates/  One folder per simulation template (physics model + renderer), plus the registry
-  content/    Curriculum data (topics/questions), schema, validator, praise lines
+  content/    Curriculum data (topics/questions, bilingual), schema, locale helpers, validator, praise lines
   game/       Pure logic: prediction-loop state machine, scoring and aggregation
-  state/      Zustand progress store persisted to localStorage (versioned)
+  state/      Zustand stores persisted to localStorage: progress (versioned) and locale
   ui/         React: app shell, screens, controls, prediction/debrief cards, simulation bridge
 ```
 
@@ -38,6 +38,7 @@ src/
 - **Determinism.** Physics runs at a fixed 1/240 s step, independent of frame rate, with frame time capped at 0.1 s. Rendering stops when a run ends or the tab is hidden.
 - **Content is data.** Adding questions means editing `src/content/`. CI validates it against the template registry. See [docs/ADDING_CONTENT.md](docs/ADDING_CONTENT.md).
 - **Answer keys are tested.** Template physics tests assert the behaviour each "correct" option claims.
+- **Languages.** Hebrew (default, RTL) and English. Content strings are `{ en, he }` objects (`src/content/locale.ts`). UI chrome strings are in `src/ui/i18n/strings.ts`. The locale is persisted by `src/state/localeStore.ts`, separately from progress. The simulation figure and its legend stay English and LTR.
 - **Routing.** Hash routing (`/#/topic/...`) so deep links work on GitHub Pages.
 
 ## Deployment

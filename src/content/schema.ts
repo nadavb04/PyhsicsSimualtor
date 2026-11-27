@@ -1,14 +1,18 @@
 /**
  * Curriculum data schema (spec §5), with small extensions marked ★.
  * Content files only describe *what* to show; engines/templates decide *how*.
+ *
+ * Learner-facing text is `LocalizedText` ({ en, he }). Anything drawn on the
+ * simulation canvas (e.g. the ghost label) stays a plain English string.
  */
 import type { SimulationTemplateId, VisualOverlays } from '@/engine/types';
+import type { LocalizedText } from './locale';
 
-export type { SimulationTemplateId, VisualOverlays };
+export type { SimulationTemplateId, VisualOverlays, LocalizedText };
 
 export interface SliderParam {
   id: string;
-  label: string;
+  label: LocalizedText;
   unit: string;
   min: number;
   max: number;
@@ -18,22 +22,22 @@ export interface SliderParam {
   /** ★ 'toggle' renders an Off/On switch (min 0, max 1, step 1). Default 'range'. */
   kind?: 'range' | 'toggle';
   /** ★ Toggle captions, [off, on]. */
-  valueLabels?: readonly [string, string];
+  valueLabels?: readonly [LocalizedText, LocalizedText];
   /** ★ Qualitative captions shown under the slider ends, e.g. ['gentle', 'hard']. */
-  qualitativeLabels?: readonly [string, string];
+  qualitativeLabels?: readonly [LocalizedText, LocalizedText];
 }
 
 export interface ChoiceOption {
   id: string;
-  text: string;
+  text: LocalizedText;
   isCorrect: boolean;
   /** Tailored to the specific misconception (wrong) or the conceptual takeaway (correct). */
-  feedback: string;
+  feedback: LocalizedText;
 }
 
 export interface SubQuestion {
   id: string;
-  prompt: string;
+  prompt: LocalizedText;
   options: ChoiceOption[];
   /** Must be one of the template's `supportedCues`. */
   visualFocusCue?: string;
@@ -43,14 +47,15 @@ export interface SubQuestion {
 
 /** ★ Optional semi-transparent comparison run (e.g. "2× launch speed"). */
 export interface GhostComparison {
+  /** Drawn on the canvas, so English-only like all figure labels. */
   label: string;
   paramOverrides: Record<string, number>;
 }
 
 export interface PhysicsQuestion {
   id: string;
-  title: string;
-  scenarioDescription: string;
+  title: LocalizedText;
+  scenarioDescription: LocalizedText;
   simulationTemplate: SimulationTemplateId;
   parameters: SliderParam[];
   visualOverlays: VisualOverlays;
@@ -61,7 +66,7 @@ export interface PhysicsQuestion {
 
 export interface PhysicsTopic {
   id: string;
-  title: string;
-  description: string;
+  title: LocalizedText;
+  description: LocalizedText;
   questions: PhysicsQuestion[];
 }

@@ -1,4 +1,5 @@
 import type { RunStatus } from '@/engine/loop';
+import { useI18n } from '../i18n/useI18n';
 
 interface Props {
   status: RunStatus;
@@ -24,10 +25,11 @@ export function PlaybackControls({
   onReset,
   onStep,
 }: Props) {
+  const { t } = useI18n();
   const running = status === 'running';
   return (
     <div className="space-y-1.5">
-      <div className="flex gap-2" role="group" aria-label="Playback">
+      <div className="flex gap-2" role="group" aria-label={t.playback}>
         <button
           type="button"
           className={`${btn} bg-sky-600 text-white`}
@@ -35,7 +37,7 @@ export function PlaybackControls({
           onClick={running ? onPause : onPlay}
         >
           <span aria-hidden>{running ? '❚❚' : '▶'}</span>
-          {running ? 'Pause' : status === 'finished' ? 'Replay' : 'Play'}
+          {running ? t.pause : status === 'finished' ? t.replay : t.play}
         </button>
         <button
           type="button"
@@ -43,7 +45,8 @@ export function PlaybackControls({
           disabled={disabled || running}
           onClick={onStep}
         >
-          <span aria-hidden>⏭</span>Step
+          <span aria-hidden>⏭</span>
+          {t.step}
         </button>
         <button
           type="button"
@@ -51,7 +54,8 @@ export function PlaybackControls({
           disabled={disabled}
           onClick={onReset}
         >
-          <span aria-hidden>↺</span>Reset
+          <span aria-hidden>↺</span>
+          {t.reset}
         </button>
       </div>
       {disabled && disabledHint && (
