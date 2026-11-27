@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { routes } from '@/router';
 import { useLocaleStore } from '@/state/localeStore';
 import { useProgressStore } from '@/state/progressStore';
+import { TOPICS } from '@/content';
 
 const QUESTION_URL = '/topic/kinematics-1d/stone-thrown-upward';
 
@@ -122,4 +123,35 @@ describe('QuestionScreen in Hebrew (default locale)', () => {
     expect(document.documentElement.dir).toBe('rtl');
     expect(screen.getByText(/כמה פעמים האבן עוברת/)).toBeInTheDocument();
   });
+});
+
+describe('every Topic 1 question', () => {
+  beforeEach(() => {
+    useProgressStore.getState().resetProgress();
+    useLocaleStore.getState().setLocale('en');
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+  });
+
+  const topic = TOPICS[0]!;
+  it.each(topic.questions.map((q) => [q.id, q] as const))(
+    '%s: every part can be answered correctly through the UI',
+    async (_id, question) => {
+      const user = userEvent.setup();
+      renderAt(`/topic/${topic.id}/${question.id}`);
+      for (const [i, sub] of question.subQuestions.entries()) {
+        const correct = sub.options.find((o) => o.isCorrect)!;
+        expect(screen.getByText(sub.prompt.en)).toBeInTheDocument();
+        await user.click(screen.getByRole('radio', { name: correct.text.en }));
+        await user.click(screen.getByRole('button', { name: /lock in/i }));
+        await user.click(screen.getByRole('button', { name: /skip to result/i }));
+        expect(await screen.findByText(/\+10 pts/)).toBeInTheDocument();
+        expect(screen.getByText(correct.feedback.en)).toBeInTheDocument();
+        const isLast = i === question.subQuestions.length - 1;
+        if (!isLast) await user.click(screen.getByRole('button', { name: /next: part/i }));
+      }
+      expect(screen.getByTestId('total-score')).toHaveTextContent(
+        String(10 * question.subQuestions.length),
+      );
+    },
+  );
 });

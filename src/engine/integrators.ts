@@ -40,3 +40,15 @@ export function crossingFraction(f0: number, f1: number, target: number): number
   const d = f1 - f0;
   return d === 0 ? 0 : (target - f0) / d;
 }
+
+/**
+ * Classic RK4 for a first-order ODE dx/dt = f(x, t). Used when speed is known from
+ * position (energy conservation on a track), so only position needs integrating.
+ */
+export function rk4(x: number, t: number, dt: number, f: (x: number, t: number) => number): number {
+  const k1 = f(x, t);
+  const k2 = f(x + 0.5 * dt * k1, t + 0.5 * dt);
+  const k3 = f(x + 0.5 * dt * k2, t + 0.5 * dt);
+  const k4 = f(x + dt * k3, t + dt);
+  return x + (dt / 6) * (k1 + 2 * k2 + 2 * k3 + k4);
+}

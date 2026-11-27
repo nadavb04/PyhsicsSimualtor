@@ -126,16 +126,19 @@ export function drawLabel(
 ): void {
   ctx.save();
   ctx.font = FONT;
-  ctx.textAlign = opts.align ?? 'left';
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   const w = ctx.measureText(text).width;
-  const left = opts.align === 'center' ? x - w / 2 : opts.align === 'right' ? x - w : x;
+  let left = opts.align === 'center' ? x - w / 2 : opts.align === 'right' ? x - w : x;
+  // Keep the pill inside the canvas (CSS px = device px / transform scale).
+  const cssWidth = ctx.canvas.width / (ctx.getTransform().a || 1);
+  left = Math.max(6, Math.min(left, cssWidth - w - 6));
   ctx.fillStyle = opts.background ?? 'rgba(15, 23, 42, 0.75)';
   ctx.beginPath();
   ctx.roundRect(left - 5, y - 10, w + 10, 20, 6);
   ctx.fill();
   ctx.fillStyle = color;
-  ctx.fillText(text, x, y);
+  ctx.fillText(text, left, y);
   ctx.restore();
 }
 
@@ -177,22 +180,92 @@ export function drawVerticalRuler(
   ctx.restore();
 }
 
+/** Horizontal metre ruler with ticks at screen row `y` (e.g. under a track). */
+export function drawHorizontalRuler(
+  ctx: Ctx,
+  cam: Camera,
+  minX: number,
+  maxX: number,
+  y: number,
+  color: string,
+  unit = 'm',
+): void {
+  const step = niceStep(maxX - minX, Math.max(2, Math.floor(cam.width / 70)));
+  ctx.save();
+  ctx.font = FONT;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = 0.7;
+  ctx.lineWidth = 1;
+  for (let v = Math.ceil(minX / step) * step; v <= maxX + 1e-9; v += step) {
+    const x = cam.toX(v);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, y + 5);
+    ctx.stroke();
+    ctx.fillText(`${Math.round(v * 100) / 100}${unit}`, x, y + 7);
+  }
+  ctx.restore();
+}
+
+/** Filled rounded box centred on (x, y), e.g. a car or glider. */
+export function drawBox(
+  ctx: Ctx,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  color: string,
+  alpha = 1,
+): void {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(x - w / 2, y - h / 2, w, h, Math.min(4, h / 3));
+  ctx.fill();
+  ctx.restore();
+}
+
 export interface GraphSeries {
   points: readonly { x: number; y: number }[];
   color: string;
+  dash?: number[];
+}
+
+export interface GraphRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface GraphDomain {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+/** Data → CSS-pixel mapping for a mini graph, so templates can annotate points on it. */
+export function graphMapper(rect: GraphRect, domain: GraphDomain) {
+  return {
+    sx: (v: number) => rect.x + ((v - domain.minX) / (domain.maxX - domain.minX)) * rect.w,
+    sy: (v: number) => rect.y + rect.h - ((v - domain.minY) / (domain.maxY - domain.minY)) * rect.h,
+  };
 }
 
 /** Compact inset graph (e.g. live v(t)). `rect` is in CSS pixels. */
 export function drawMiniGraph(
   ctx: Ctx,
-  rect: { x: number; y: number; w: number; h: number },
-  domain: { minX: number; maxX: number; minY: number; maxY: number },
+  rect: GraphRect,
+  domain: GraphDomain,
   series: readonly GraphSeries[],
   opts: { axisColor: string; background?: string; xLabel?: string; yLabel?: string },
 ): void {
-  const sx = (v: number) => rect.x + ((v - domain.minX) / (domain.maxX - domain.minX)) * rect.w;
-  const sy = (v: number) =>
-    rect.y + rect.h - ((v - domain.minY) / (domain.maxY - domain.minY)) * rect.h;
+  const { sx, sy } = graphMapper(rect, domain);
   ctx.save();
   ctx.fillStyle = opts.background ?? 'rgba(15, 23, 42, 0.8)';
   ctx.beginPath();
@@ -214,6 +287,7 @@ export function drawMiniGraph(
     if (s.points.length < 2) continue;
     ctx.strokeStyle = s.color;
     ctx.lineWidth = 2;
+    ctx.setLineDash(s.dash ?? []);
     ctx.beginPath();
     s.points.forEach((p, i) =>
       i === 0 ? ctx.moveTo(sx(p.x), sy(p.y)) : ctx.lineTo(sx(p.x), sy(p.y)),

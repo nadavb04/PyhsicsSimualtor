@@ -13,15 +13,16 @@ UI chrome strings (buttons, headings, hints) live in [src/ui/i18n/strings.ts](..
 
 ## Add a question to an existing template
 
-1. Open the topic file, e.g. [src/content/topics/kinematics-1d.ts](../src/content/topics/kinematics-1d.ts).
-2. Append a `PhysicsQuestion` (schema: [src/content/schema.ts](../src/content/schema.ts)):
+1. Each question lives in its own module, e.g. [src/content/topics/kinematics-1d/](../src/content/topics/kinematics-1d/). Create one and add it to the topic's `questions` list in [kinematics-1d.ts](../src/content/topics/kinematics-1d.ts).
+2. Export a `PhysicsQuestion` (schema: [src/content/schema.ts](../src/content/schema.ts)):
    - `simulationTemplate`: a registered template id.
-   - `parameters`: must include the template's `requiredParams`, and may include its `optionalParams`. Use `kind: 'toggle'` for Off/On switches (min 0, max 1, step 1).
+   - `parameters`: the sliders. Together with `fixedParams` they must cover the template's `requiredParams`, and may include its `optionalParams`. Use `kind: 'toggle'` for Off/On switches (min 0, max 1, step 1). Set `lockedDuringPrediction` on any slider whose value the correct answer depends on.
+   - `fixedParams` (optional): template parameters held constant with no slider, e.g. `{ buildingHeight: 0 }` for a throw from the ground, or `{ scene: 1 }` to draw a runner and a bus instead of two cars.
    - `subQuestions`: each has **exactly one** `isCorrect` option. Every option's `feedback` is shown in the debrief. For a wrong option it's the misconception hint (point at what's visible on screen). For the correct option it's the takeaway.
    - `visualFocusCue`: must be in the template's `supportedCues`.
    - `presetOverrides`: slider values applied when the sub-question opens.
-   - `ghost` (optional): a semi-transparent comparison run. It requires `visualOverlays.showGhostComparison: true`.
-3. Run `npm test`. [src/content/content.test.ts](../src/content/content.test.ts) validates all content against the template registry (ids, ranges, steps, cues, one correct option). CI fails on any content error.
+   - `ghost` (optional, on the question or on one sub-question): a semi-transparent comparison run. It requires `visualOverlays.showGhostComparison: true`. `paramScale` multiplies the live slider values (`{ launchSpeed: 0.5 }` = half the current speed, so the ghost tracks the slider), and `paramOverrides` sets absolute values. A sub-question's ghost replaces the question's.
+3. Run `npm test`. [src/content/content.test.ts](../src/content/content.test.ts) validates all content against the template registry (ids, ranges, steps, cues, one correct option). It also checks that every sub-question's preset run ends naturally within 15 s, and within 20 s with any single slider at either end. The observe phase waits for the run to end, so keep runs short. CI fails on any content error.
 4. **Verify the answer key with physics.** Add a test to the template's test file that simulates the scenario headlessly and asserts the behaviour the correct option claims. See [vertical-throw.test.ts](../src/templates/vertical-throw/vertical-throw.test.ts).
 
 ## Add a new topic

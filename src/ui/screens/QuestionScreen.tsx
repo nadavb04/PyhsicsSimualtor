@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { getQuestion, initialParams, subQuestionKey } from '@/content';
+import { activeGhost, getQuestion, initialParams, subQuestionKey } from '@/content';
 import { pickPraise } from '@/content/praise';
 import type { PhysicsQuestion, SliderParam, SubQuestion } from '@/content/schema';
 import { canFreePlay, flowReducer, initialFlowState, type FlowOutcome } from '@/game/questionFlow';
@@ -118,7 +118,8 @@ function SubQuestionRunner({
   // Captured at mount so the debrief keeps showing earned points after this attempt is saved.
   const [practice] = useState(() => useProgressStore.getState().results[key]?.solved ?? false);
 
-  const [presets] = useState(() => initialParams(question.parameters, sub));
+  const [presets] = useState(() => initialParams(question.parameters, sub, question.fixedParams));
+  const ghost = activeGhost(question, sub);
   const [params, setParams] = useState(presets);
   const [flow, dispatch] = useReducer(flowReducer, initialFlowState);
   const correctOptionId = sub.options.find((o) => o.isCorrect)?.id ?? '';
@@ -133,7 +134,7 @@ function SubQuestionRunner({
     params,
     overlays: question.visualOverlays,
     ...(sub.visualFocusCue ? { focusCue: sub.visualFocusCue } : {}),
-    ...(question.ghost ? { ghost: question.ghost } : {}),
+    ...(ghost ? { ghost } : {}),
     onFinished,
   });
 

@@ -6,6 +6,7 @@
 import { simulate } from '@/engine/headless';
 import { SimulationRunner, type RunStatus } from '@/engine/loop';
 import type { BaseSimState, Params, VisualOverlays } from '@/engine/types';
+import { ghostParams } from '@/content';
 import type { GhostComparison } from '@/content/schema';
 import { fitCamera, syncCanvasSize, unionBounds } from '@/render/camera';
 import { DEFAULT_THEME, readTheme, type Theme } from '@/render/theme';
@@ -156,10 +157,10 @@ export class SimulationController {
   private computeGhost(): GhostRun | undefined {
     const { ghost, overlays, template, params } = this.config;
     if (!ghost || !overlays.showGhostComparison) return undefined;
-    const ghostParams = { ...params, ...ghost.paramOverrides };
+    const runParams = ghostParams(params, ghost);
     return {
-      history: simulate(template, ghostParams).history,
-      params: ghostParams,
+      history: simulate(template, runParams).history,
+      params: runParams,
       label: ghost.label,
     };
   }

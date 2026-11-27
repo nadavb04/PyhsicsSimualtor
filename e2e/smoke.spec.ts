@@ -83,3 +83,39 @@ test.describe('Hebrew (default)', () => {
     ).toBeVisible();
   });
 });
+
+const QUESTION_IDS = [
+  'stone-thrown-upward',
+  'two-cars-passing',
+  'speeding-up-slowing-down',
+  'strobe-dot-spacing',
+  'dropped-vs-thrown',
+  'doubling-launch-speed',
+  'chasing-the-bus',
+  'heavy-vs-light',
+  'reading-vt-graph',
+  'valley-track-race',
+];
+
+test.describe('every Topic 1 question', () => {
+  for (const id of QUESTION_IDS) {
+    test(`${id}: renders, fits the viewport and runs to a debrief`, async ({ page }) => {
+      const errors: string[] = [];
+      page.on('pageerror', (e) => errors.push(e.message));
+      await page.goto(`/#/topic/kinematics-1d/${id}`);
+      await expect(page.getByTestId('sim-stage')).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+      expect(await smallTapTargets(page)).toEqual([]);
+
+      await page.getByRole('radio').first().click();
+      await page.getByRole('button', { name: /נעילה/ }).click();
+      await page.getByRole('button', { name: /דילוג לתוצאה/ }).click();
+      // Debrief: a correct pick offers the next part, a wrong one offers a retry.
+      await expect(
+        page.getByRole('button', { name: /הבא: סעיף|שינוי וניסיון חוזר/ }).first(),
+      ).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+      expect(errors).toEqual([]);
+    });
+  }
+});

@@ -1,5 +1,5 @@
 import { LOCALES, type LocalizedText } from './locale';
-import type { PhysicsTopic, SimulationTemplateId, SliderParam } from './schema';
+import type { GhostComparison, PhysicsTopic, SimulationTemplateId, SliderParam } from './schema';
 
 /** The slice of a template that content validation needs (keeps content free of render code). */
 export interface TemplateContract {
@@ -88,12 +88,18 @@ export function validateContent(
         }
         checkValue(p, p.defaultValue, `${where} default`, errors);
       }
+      const fixed = new Map(Object.entries(q.fixedParams ?? {}));
+      for (const [id, value] of fixed) {
+        if (params.has(id)) errors.push(`${where}: "${id}" is both a slider and a fixed param`);
+        if (!Number.isFinite(value)) errors.push(`${where}: fixed param "${id}" is not finite`);
+      }
       if (template) {
         for (const id of template.requiredParams) {
-          if (!params.has(id)) errors.push(`${where}: missing required parameter "${id}"`);
+          if (!params.has(id) && !fixed.has(id))
+            errors.push(`${where}: missing required parameter "${id}"`);
         }
         const known = new Set([...template.requiredParams, ...template.optionalParams]);
-        for (const id of params.keys()) {
+        for (const id of [...params.keys(), ...fixed.keys()]) {
           if (!known.has(id))
             errors.push(`${where}: parameter "${id}" is not used by the template`);
         }
@@ -106,10 +112,22 @@ export function validateContent(
           else checkValue(p, value, ctx, errors);
         }
       };
-      checkOverrides(q.ghost?.paramOverrides, `${where} ghost`);
-      if (q.ghost && !q.visualOverlays.showGhostComparison) {
-        errors.push(`${where}: ghost defined but visualOverlays.showGhostComparison is off`);
-      }
+      const checkGhost = (ghost: GhostComparison | undefined, ctx: string) => {
+        if (!ghost) return;
+        if (!ghost.label.trim()) errors.push(`${ctx}: ghost needs a label`);
+        if (!q.visualOverlays.showGhostComparison) {
+          errors.push(`${ctx}: ghost defined but visualOverlays.showGhostComparison is off`);
+        }
+        // Ghost values may leave the slider range (e.g. 2× the max), so only check ids.
+        for (const id of Object.keys({ ...ghost.paramOverrides, ...ghost.paramScale })) {
+          if (!params.has(id) && !fixed.has(id))
+            errors.push(`${ctx}: ghost changes unknown parameter "${id}"`);
+        }
+        if (Object.keys({ ...ghost.paramOverrides, ...ghost.paramScale }).length === 0) {
+          errors.push(`${ctx}: ghost changes no parameters`);
+        }
+      };
+      checkGhost(q.ghost, `${where} ghost`);
 
       // Sub-questions.
       if (q.subQuestions.length === 0) errors.push(`${where}: no sub-questions`);
@@ -131,6 +149,7 @@ export function validateContent(
           checkText(o.feedback, `${sw}/${o.id} feedback`, errors);
         }
         checkOverrides(sub.presetOverrides, `${sw} preset`);
+        checkGhost(sub.ghost, `${sw} ghost`);
         if (
           sub.visualFocusCue &&
           template &&

@@ -17,6 +17,8 @@
   --color-strobe: #e2e8f0;
   --color-marker: #facc15;
   --color-reference: #a78bfa;
+  --color-body-a: #38bdf8;
+  --color-body-b: #f472b6;
 }
 
 @layer base {

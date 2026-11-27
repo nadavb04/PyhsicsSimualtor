@@ -10,7 +10,7 @@ import {
   drawVerticalRuler,
 } from '@/render/primitives';
 import type { FrameData, RenderContext } from '../types';
-import { STONE_ID, readParams, referenceHeight, type VerticalThrowState } from './physics';
+import { STONE_ID, STONE_X, readParams, referenceHeight, type VerticalThrowState } from './physics';
 
 const BUILDING_LEFT = -5;
 const BUILDING_RIGHT = 0;
@@ -18,12 +18,16 @@ const STROBE_INTERVAL = 0.2;
 const STONE_RADIUS = 8;
 /** Screen-space offset of the descending column so up/down strobe dots don't overlap. */
 const DOWN_COLUMN_PX = 18;
+/** The ghost run is drawn this far to the right of the live stone. */
+const GHOST_COLUMN_PX = 48;
 
 export const CUES = [
   'compare_height_crossings',
   'compare_crossing_speeds',
   'highlight_turning_point',
   'show_velocity_vector',
+  'compare_peaks',
+  'compare_flight_times',
 ] as const;
 
 /** Smoothly shift falling positions to the right of rising ones. */
@@ -76,13 +80,48 @@ export function renderVerticalThrow(rc: RenderContext, frame: FrameData<Vertical
     drawLabel(ctx, 'test height', width - 64, ry + 14, theme.reference, { align: 'right' });
   }
 
-  // Ghost comparison run, kept in sync with the live clock.
-  if (ghost && overlays.showGhostComparison) {
+  // Ghost comparison run in its own column, kept in sync with the live clock.
+  const showGhost = !!ghost && !!overlays.showGhostComparison;
+  if (ghost && showGhost) {
+    const gx = (b: BodySample) => sx(b) + GHOST_COLUMN_PX;
     const g = findBody(sampleAt(ghost.history, t), STONE_ID);
-    if (overlays.showStrobeDots) drawStrobe(ctx, ghost.history, t, sx, cam.toY, theme.ghost, 0.35);
+    if (overlays.showStrobeDots) drawStrobe(ctx, ghost.history, t, gx, cam.toY, theme.ghost, 0.35);
     if (g) {
-      drawDot(ctx, sx(g), cam.toY(g.pos.y), STONE_RADIUS, theme.ghost, 0.45);
-      drawLabel(ctx, ghost.label, sx(g) + 14, cam.toY(g.pos.y), theme.ghost);
+      drawDot(ctx, gx(g), cam.toY(g.pos.y), STONE_RADIUS, theme.ghost, 0.55);
+      drawLabel(ctx, ghost.label, gx(g) + 14, cam.toY(g.pos.y), theme.ghost);
+    }
+  }
+
+  // Ghost-vs-live comparisons: peak heights and flight times.
+  if (focusCue === 'compare_peaks' || focusCue === 'compare_flight_times') {
+    const runs = [{ events: history.events, color: theme.body, x: cam.toX(STONE_X) }];
+    if (ghost && showGhost) {
+      runs.push({
+        events: ghost.history.events,
+        color: theme.ghost,
+        x: cam.toX(STONE_X) + GHOST_COLUMN_PX,
+      });
+    }
+    for (const run of runs) {
+      const type = focusCue === 'compare_peaks' ? 'turning-point' : 'landed';
+      const e = run.events.find((ev) => ev.type === type && ev.t <= t + 1e-9);
+      if (!e?.pos) continue;
+      if (focusCue === 'compare_peaks') {
+        const py = cam.toY(e.pos.y);
+        drawLine(ctx, 0, py, width - 60, py, run.color, { dash: [6, 5], alpha: 0.7 });
+        drawLabel(
+          ctx,
+          `peak ${(e.pos.y - q.buildingHeight).toFixed(1)} m`,
+          cam.toX(STONE_X) - 16,
+          py - 14,
+          run.color,
+          { align: 'right' },
+        );
+      } else {
+        drawLabel(ctx, `${e.t.toFixed(2)} s`, run.x + 6, groundY + 14, run.color, {
+          align: 'center',
+        });
+      }
     }
   }
 

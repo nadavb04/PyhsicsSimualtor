@@ -47,5 +47,19 @@ The GitHub Actions workflow [.github/workflows/deploy.yml](.github/workflows/dep
 
 ## Status
 
-- ✅ Infrastructure, with the `vertical-throw` template and Topic 1 / Question 1 as a working vertical slice.
-- ⏳ Templates still to build: `two-cars-chase`, `cart-1d-vectors`, `strobe-runner`, `free-fall-pair`, `vacuum-tube-drag`, `glider-vt-graph`, `valley-track-race`. These come with Questions 2–10.
+- ✅ Infrastructure: engine, renderer, prediction loop, scoring, persistence, Hebrew/English.
+- ✅ All eight 1D templates: `vertical-throw`, `two-cars-chase`, `cart-1d-vectors`, `strobe-runner`, `free-fall-pair`, `vacuum-tube-drag`, `glider-vt-graph`, `valley-track-race`.
+- ✅ Topic 1 (1D Kinematics), Questions 1–10 from spec §6, in both languages. Every answer key is checked by headless physics tests.
+
+| #   | Question                          | Template            |
+| --- | --------------------------------- | ------------------- |
+| 1   | Stone thrown upward               | `vertical-throw`    |
+| 2   | Two cars passing                  | `two-cars-chase`    |
+| 3   | Speeding up vs. slowing down      | `cart-1d-vectors`   |
+| 4   | Strobe dot spacing                | `strobe-runner`     |
+| 5   | Dropped vs. thrown downward       | `free-fall-pair`    |
+| 6   | Doubling the launch speed         | `vertical-throw`    |
+| 7   | Chasing a departing bus           | `two-cars-chase`    |
+| 8   | Heavy vs. light, with/without air | `vacuum-tube-drag`  |
+| 9   | Reading a v(t) line               | `glider-vt-graph`   |
+| 10  | The valley track race             | `valley-track-race` |

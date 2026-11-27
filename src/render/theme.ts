@@ -13,6 +13,9 @@ export interface Theme {
   strobe: string;
   marker: string;
   reference: string;
+  /** Two-body scenes: body A and body B. */
+  bodyA: string;
+  bodyB: string;
   text: string;
   grid: string;
 }
@@ -28,6 +31,8 @@ export const DEFAULT_THEME: Theme = {
   strobe: '#e2e8f0',
   marker: '#facc15',
   reference: '#a78bfa',
+  bodyA: '#38bdf8',
+  bodyB: '#f472b6',
   text: '#cbd5e1',
   grid: '#1e293b',
 };
@@ -43,6 +48,8 @@ const CSS_VARS: Record<keyof Theme, string> = {
   strobe: '--color-strobe',
   marker: '--color-marker',
   reference: '--color-reference',
+  bodyA: '--color-body-a',
+  bodyB: '--color-body-b',
   text: '--color-stage-text',
   grid: '--color-stage-grid',
 };

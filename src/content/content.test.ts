@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { simulate } from '@/engine/headless';
 import { templateRegistry } from '@/templates/registry';
-import { TOPICS, initialParams } from '.';
+import { TOPICS, activeGhost, ghostParams, initialParams } from '.';
 import { PRAISE_LINES, pickPraise } from './praise';
 import { tr, type LocalizedText } from './locale';
 import type { PhysicsTopic } from './schema';
@@ -9,6 +10,55 @@ import { validateContent } from './validate';
 describe('curriculum content', () => {
   it('passes validation against the template registry', () => {
     expect(validateContent(TOPICS, templateRegistry)).toEqual([]);
+  });
+
+  it('Topic 1 has all ten spec questions, each on its spec template', () => {
+    const t1 = TOPICS.find((t) => t.id === 'kinematics-1d')!;
+    expect(t1.questions.map((q) => q.simulationTemplate)).toEqual([
+      'vertical-throw',
+      'two-cars-chase',
+      'cart-1d-vectors',
+      'strobe-runner',
+      'free-fall-pair',
+      'vertical-throw',
+      'two-cars-chase',
+      'vacuum-tube-drag',
+      'glider-vt-graph',
+      'valley-track-race',
+    ]);
+  });
+
+  // The observe phase waits for the run to end, so every preset (and its ghost) must
+  // finish on its own, in a time a student will actually sit through.
+  const cases = TOPICS.flatMap((topic) =>
+    topic.questions.flatMap((q) =>
+      q.subQuestions.map((sub) => ({ name: `${q.id}/${sub.id}`, q, sub })),
+    ),
+  );
+  it.each(cases)('$name: the preset run ends naturally within 15 s', ({ q, sub }) => {
+    const template = templateRegistry[q.simulationTemplate];
+    const params = initialParams(q.parameters, sub, q.fixedParams);
+    const runs = [params];
+    const ghost = activeGhost(q, sub);
+    if (ghost) runs.push(ghostParams(params, ghost));
+    for (const p of runs) {
+      const { finalState } = simulate(template, p);
+      expect(template.isFinished(finalState, p)).toBe(true);
+      expect(finalState.t).toBeLessThan(15);
+    }
+  });
+
+  it.each(cases)('$name: the slowest slider settings still end within 20 s', ({ q, sub }) => {
+    // Try each slider at both ends, one at a time, on top of the preset.
+    const template = templateRegistry[q.simulationTemplate];
+    const base = initialParams(q.parameters, sub, q.fixedParams);
+    for (const p of q.parameters) {
+      for (const value of [p.min, p.max]) {
+        const params = { ...base, [p.id]: value };
+        const { finalState } = simulate(template, params);
+        expect(finalState.t, `${p.id} = ${value}`).toBeLessThan(20);
+      }
+    }
   });
 });
 
@@ -99,6 +149,37 @@ describe('validateContent', () => {
       (t: PhysicsTopic) => (t.description = { en: 'About', he: '' }),
       /description: missing text/,
     ],
+    [
+      'fixed param unknown to the template',
+      (t: PhysicsTopic) => (q(t).fixedParams = { zzz: 1 }),
+      /"zzz" is not used by the template/,
+    ],
+    [
+      'param that is both a slider and fixed',
+      (t: PhysicsTopic) => (q(t).fixedParams = { a: 4 }),
+      /both a slider and a fixed param/,
+    ],
+    [
+      'sub-question ghost without the ghost overlay',
+      (t: PhysicsTopic) => (sub(t).ghost = { label: 'g', paramScale: { a: 2 } }),
+      /showGhostComparison is off/,
+    ],
+    [
+      'ghost scaling an unknown parameter',
+      (t: PhysicsTopic) => {
+        q(t).visualOverlays = { showGhostComparison: true };
+        q(t).ghost = { label: 'g', paramScale: { nope: 2 } };
+      },
+      /ghost changes unknown parameter "nope"/,
+    ],
+    [
+      'ghost that changes nothing',
+      (t: PhysicsTopic) => {
+        q(t).visualOverlays = { showGhostComparison: true };
+        q(t).ghost = { label: 'g' };
+      },
+      /ghost changes no parameters/,
+    ],
   ])('rejects %s', (_name, patch, message) => {
     const errors = validateContent([make(patch)], contract);
     expect(errors.some((e) => message.test(e))).toBe(true);
@@ -114,6 +195,23 @@ describe('content helpers', () => {
     });
     expect(params.launchSpeed).toBe(7);
     expect(params.buildingHeight).toBe(20);
+  });
+
+  it('initialParams layers fixed params, then defaults, then presets', () => {
+    const q6 = TOPICS[0]!.questions.find((q) => q.id === 'doubling-launch-speed')!;
+    const params = initialParams(q6.parameters, q6.subQuestions[0], q6.fixedParams);
+    expect(params).toMatchObject({ buildingHeight: 0, airDrag: 0, launchSpeed: 20 });
+  });
+
+  it('ghostParams scales live values, then applies absolute overrides', () => {
+    const ghost = { label: 'g', paramScale: { v: 0.5, w: 3 }, paramOverrides: { w: 1 } };
+    expect(ghostParams({ v: 10, w: 2, x: 7 }, ghost)).toEqual({ v: 5, w: 1, x: 7 });
+  });
+
+  it('a sub-question ghost replaces the question ghost', () => {
+    const q4 = TOPICS[0]!.questions.find((q) => q.id === 'strobe-dot-spacing')!;
+    expect(activeGhost(q4, q4.subQuestions[0]!)).toBeUndefined();
+    expect(activeGhost(q4, q4.subQuestions[1]!)?.label).toBe('2× speed');
   });
 
   it('pickPraise is deterministic with an injected random source', () => {
