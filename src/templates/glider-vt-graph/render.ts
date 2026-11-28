@@ -112,6 +112,7 @@ export function renderGlider(rc: RenderContext, frame: FrameData<GliderState>): 
       background: 'rgba(15, 23, 42, 0)',
       yLabel: 'v (m/s)',
       xLabel: 't (s)',
+      axisSymbols: { x: 't', y: 'v' },
     });
     mapper = graphMapper(rect, domain);
     ctx.save();

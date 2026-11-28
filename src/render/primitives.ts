@@ -263,7 +263,14 @@ export function drawMiniGraph(
   rect: GraphRect,
   domain: GraphDomain,
   series: readonly GraphSeries[],
-  opts: { axisColor: string; background?: string; xLabel?: string; yLabel?: string },
+  opts: {
+    axisColor: string;
+    background?: string;
+    xLabel?: string;
+    yLabel?: string;
+    /** Labels for the two unit vectors drawn in the bottom-left corner (e.g. t, v). */
+    axisSymbols?: { x: string; y: string };
+  },
 ): void {
   const { sx, sy } = graphMapper(rect, domain);
   ctx.save();
@@ -281,6 +288,21 @@ export function drawMiniGraph(
     ctx.lineTo(rect.x + rect.w, sy(0));
     ctx.stroke();
   }
+  // Unit vectors for the positive axis directions, drawn before the data so curves stay on top.
+  const ox = rect.x + 10;
+  const oy = rect.y + rect.h - 10;
+  const unit = Math.min(18, rect.w / 6, rect.h / 4);
+  ctx.globalAlpha = 0.85;
+  drawArrow(ctx, ox, oy, unit, 0, {
+    color: opts.axisColor,
+    lineWidth: 1.5,
+    label: opts.axisSymbols?.x,
+  });
+  drawArrow(ctx, ox, oy, 0, -unit, {
+    color: opts.axisColor,
+    lineWidth: 1.5,
+    label: opts.axisSymbols?.y,
+  });
   ctx.globalAlpha = 1;
 
   for (const s of series) {
