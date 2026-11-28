@@ -38,10 +38,28 @@ describe('vertical-throw physics', () => {
     expect(Math.abs(speed(ledge) - base.launchSpeed) / base.launchSpeed).toBeLessThan(0.005);
   });
 
-  it('(b) with drag, the falling speed is lower than the rising speed', () => {
+  it.each([5, 15, 25])(
+    '(d) with drag, the falling speed is lower than the rising speed (v0 = %s)',
+    (launchSpeed) => {
+      const { history } = simulate(verticalThrow, { ...base, launchSpeed, airDrag: 1 });
+      const [up, down] = ofType(history.events, 'reference-crossing');
+      expect(up?.data?.direction).toBe('up');
+      expect(down?.data?.direction).toBe('down');
+      expect(speed(down)).toBeLessThan(speed(up));
+    },
+  );
+
+  it('(d) with drag at the default throw, the speed loss is clearly visible', () => {
     const { history } = simulate(verticalThrow, { ...base, airDrag: 1 });
     const [up, down] = ofType(history.events, 'reference-crossing');
     expect(speed(down)).toBeLessThan(speed(up) * 0.95);
+  });
+
+  it('(d) drag still acts on the way down: |a| < g while falling', () => {
+    const { history } = simulate(verticalThrow, { ...base, airDrag: 1 });
+    const falling = history.samples.filter((s) => s.bodies[0]!.vel.y < -1);
+    expect(falling.length).toBeGreaterThan(0);
+    for (const s of falling) expect(Math.abs(s.bodies[0]!.acc.y)).toBeLessThan(g);
   });
 
   it('(c) at the peak, velocity is zero but acceleration is still g downward', () => {

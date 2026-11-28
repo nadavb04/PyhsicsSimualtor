@@ -133,7 +133,7 @@ Implement **Topic 1: 1D Kinematics** with the following 10 questions (inspired b
 
 1. **Stone Thrown Upward from a Building (Symmetry & Turning Points)**
    - _Params:_ Launch Speed, Building Height, Air Drag (Off/On).
-   - _Sub-questions:_ (a) Does the stone pass the same height above the ledge twice? (b) How does downward speed compare to upward speed at that height (drag off)? (c) What are velocity and acceleration at the very peak?
+   - _Sub-questions:_ (a) Does the stone pass the same height above the ledge twice? (b) How does downward speed compare to upward speed at that height (drag off)? (c) What are velocity and acceleration at the very peak? (d) Bonus: with air drag on, are the upward and downward speeds at that height still equal? (No: drag opposes the motion both ways, so the stone is slower on the way down.)
 2. **Two Cars Passing Each Other (Position vs. Velocity Trap)**
    - _Params:_ Car A Constant Speed, Car B Acceleration (from rest behind A).
    - _Sub-questions:_ (a) At the exact instant Car B passes Car A, do they have the same speed? (b) When _did_ they have the exact same speed?

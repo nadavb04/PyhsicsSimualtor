@@ -125,8 +125,8 @@ export const stoneThrownUpward: PhysicsQuestion = {
           },
           isCorrect: true,
           feedback: {
-            en: 'Right. Without drag the flight is symmetric: gravity takes away speed on the way up at exactly the rate it gives it back on the way down. The two speed labels match. Now try turning air drag on after this question.',
-            he: 'נכון. בלי התנגדות אוויר המעוף סימטרי: הכבידה מורידה מהירות בעלייה בדיוק באותו קצב שבו היא מחזירה אותה בירידה. שתי תוויות המהירות זהות. אחרי השאלה הזו נסו להפעיל את התנגדות האוויר.',
+            en: 'Right. Without drag the flight is symmetric: gravity takes away speed on the way up at exactly the rate it gives it back on the way down. The two speed labels match. The bonus question at the end turns air drag on.',
+            he: 'נכון. בלי התנגדות אוויר המעוף סימטרי: הכבידה מורידה מהירות בעלייה בדיוק באותו קצב שבו היא מחזירה אותה בירידה. שתי תוויות המהירות זהות. בשאלת הבונוס בסוף נפעיל את התנגדות האוויר.',
           },
         },
         {
@@ -210,6 +210,53 @@ export const stoneThrownUpward: PhysicsQuestion = {
           feedback: {
             en: 'The stone stopped because a downward acceleration had been draining its upward speed the whole way up. Check the orange arrow: it never flips.',
             he: 'האבן נעצרה כי תאוצה כלפי מטה הקטינה את מהירותה כלפי מעלה לאורך כל העלייה. בדקו את החץ הכתום: הוא אף פעם לא מתהפך.',
+          },
+        },
+      ],
+    },
+    {
+      id: 'd',
+      prompt: {
+        en: 'Bonus: now air drag is on. Compare the stone’s speed at the purple line on the way down with its speed there on the way up. Are they still equal?',
+        he: 'בונוס: עכשיו התנגדות האוויר פעילה. השוו את גודל המהירות של האבן בקו הסגול בירידה לגודל המהירות שלה שם בעלייה. האם הן עדיין שוות?',
+      },
+      visualFocusCue: 'compare_crossing_speeds',
+      presetOverrides: { airDrag: 1 },
+      options: [
+        {
+          id: 'slower-down',
+          text: {
+            en: 'No: it is slower on the way down',
+            he: 'לא: בירידה היא איטית יותר',
+          },
+          isCorrect: true,
+          feedback: {
+            en: 'Right. Drag always pushes against the motion: down while the stone rises, up while it falls. So it takes energy away in both directions. Back at the same height the stone has the same potential energy but less kinetic energy, so the ↓ speed label is smaller than the ↑ one.',
+            he: 'נכון. התנגדות האוויר תמיד פועלת נגד כיוון התנועה: כלפי מטה כשהאבן עולה, וכלפי מעלה כשהיא יורדת. לכן היא לוקחת אנרגיה בשני הכיוונים. כשהאבן חוזרת לאותו גובה יש לה אותה אנרגיית גובה אבל פחות אנרגיה קינטית, ולכן תווית המהירות ↓ קטנה מתווית המהירות ↑.',
+          },
+        },
+        {
+          id: 'same',
+          text: {
+            en: 'Yes: the flight is still symmetric',
+            he: 'כן: המעוף עדיין סימטרי',
+          },
+          isCorrect: false,
+          feedback: {
+            en: 'Compare the ↑ and ↓ speed labels on the purple line: they no longer match. Drag drains energy for the whole flight, so the symmetry from the drag-free question is lost.',
+            he: 'השוו את תוויות המהירות ↑ ו-↓ על הקו הסגול: הן כבר לא שוות. התנגדות האוויר מורידה אנרגיה לאורך כל המעוף, ולכן הסימטריה שראינו בלי התנגדות אוויר נשברת.',
+          },
+        },
+        {
+          id: 'faster-down',
+          text: {
+            en: 'No: it is faster on the way down, because drag only slows it on the way up',
+            he: 'לא: בירידה היא מהירה יותר, כי התנגדות האוויר מאטה אותה רק בעלייה',
+          },
+          isCorrect: false,
+          feedback: {
+            en: 'Drag acts on the way down too. It points up while the stone falls, which is why the orange acceleration arrow is shorter on the descent than on the climb. Check the ↓ speed label: it is the smaller one.',
+            he: 'התנגדות האוויר פועלת גם בירידה. כשהאבן נופלת היא מכוונת כלפי מעלה, ולכן חץ התאוצה הכתום קצר יותר בירידה מאשר בעלייה. בדקו את תווית המהירות ↓: היא הקטנה מבין השתיים.',
           },
         },
       ],
