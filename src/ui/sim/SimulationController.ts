@@ -9,6 +9,7 @@ import type { BaseSimState, Params, VisualOverlays } from '@/engine/types';
 import { ghostParams } from '@/content';
 import type { GhostComparison } from '@/content/schema';
 import { fitCamera, syncCanvasSize, unionBounds } from '@/render/camera';
+import { drawAxisUnitVectors } from '@/render/primitives';
 import { DEFAULT_THEME, readTheme, type Theme } from '@/render/theme';
 import type { AnySimTemplate, GhostRun } from '@/templates/types';
 
@@ -216,5 +217,7 @@ export class SimulationController {
         ...(this.ghostRun ? { ghost: this.ghostRun } : {}),
       },
     );
+    // Coordinate key on every scene: bottom-right, clear of the legend (bottom-left) and rulers (right edge).
+    drawAxisUnitVectors(ctx, width - 80, height - 10, this.theme.text);
   }
 }

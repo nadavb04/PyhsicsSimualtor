@@ -167,7 +167,7 @@ export function renderChase(rc: RenderContext, frame: FrameData<ChaseState>): vo
         { points: seriesFrom(history, A_ID, t, (s) => s.vel.x), color: color[A_ID]! },
         { points: seriesFrom(history, B_ID, t, (s) => s.vel.x), color: color[B_ID]! },
       ],
-      { axisColor: theme.text, yLabel: 'speed v(t)', xLabel: 't', axisSymbols: { x: 't', y: 'v' } },
+      { axisColor: theme.text, yLabel: 'speed v(t)', xLabel: 't' },
     );
     const same = eventBy(history.events, 'speeds-equal', t);
     if (same && focusCue === 'highlight_equal_speed') {

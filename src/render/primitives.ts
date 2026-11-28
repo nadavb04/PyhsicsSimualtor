@@ -263,14 +263,7 @@ export function drawMiniGraph(
   rect: GraphRect,
   domain: GraphDomain,
   series: readonly GraphSeries[],
-  opts: {
-    axisColor: string;
-    background?: string;
-    xLabel?: string;
-    yLabel?: string;
-    /** Labels for the two unit vectors drawn in the bottom-left corner (e.g. t, v). */
-    axisSymbols?: { x: string; y: string };
-  },
+  opts: { axisColor: string; background?: string; xLabel?: string; yLabel?: string },
 ): void {
   const { sx, sy } = graphMapper(rect, domain);
   ctx.save();
@@ -288,21 +281,6 @@ export function drawMiniGraph(
     ctx.lineTo(rect.x + rect.w, sy(0));
     ctx.stroke();
   }
-  // Unit vectors for the positive axis directions, drawn before the data so curves stay on top.
-  const ox = rect.x + 10;
-  const oy = rect.y + rect.h - 10;
-  const unit = Math.min(18, rect.w / 6, rect.h / 4);
-  ctx.globalAlpha = 0.85;
-  drawArrow(ctx, ox, oy, unit, 0, {
-    color: opts.axisColor,
-    lineWidth: 1.5,
-    label: opts.axisSymbols?.x,
-  });
-  drawArrow(ctx, ox, oy, 0, -unit, {
-    color: opts.axisColor,
-    lineWidth: 1.5,
-    label: opts.axisSymbols?.y,
-  });
   ctx.globalAlpha = 1;
 
   for (const s of series) {
@@ -326,5 +304,44 @@ export function drawMiniGraph(
     ctx.textBaseline = 'bottom';
     ctx.fillText(opts.xLabel, rect.x + rect.w - 4, rect.y + rect.h - 2);
   }
+  ctx.restore();
+}
+
+/** A letter with a hat over it (unit-vector notation), drawn centred on (x, y). */
+function drawHatLetter(ctx: Ctx, letter: string, x: number, y: number, color: string): void {
+  ctx.save();
+  ctx.font = `italic ${FONT}`;
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(letter, x, y);
+  ctx.lineWidth = 1.2;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x - 3, y - 6);
+  ctx.lineTo(x, y - 9);
+  ctx.lineTo(x + 3, y - 6);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
+ * Coordinate-system key: unit vectors x̂ (right) and ŷ (up) from the origin (x, y), in CSS px.
+ * Matches the world convention used by every template (SI, x right, y up).
+ */
+export function drawAxisUnitVectors(
+  ctx: Ctx,
+  x: number,
+  y: number,
+  color: string,
+  size = 18,
+): void {
+  ctx.save();
+  ctx.globalAlpha = 0.85;
+  drawArrow(ctx, x, y, size, 0, { color, lineWidth: 2 });
+  drawArrow(ctx, x, y, 0, -size, { color, lineWidth: 2 });
+  drawHatLetter(ctx, 'x', x + size + 8, y + 1, color);
+  drawHatLetter(ctx, 'y', x - 9, y - size / 2 + 1, color);
   ctx.restore();
 }
